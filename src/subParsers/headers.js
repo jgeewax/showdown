@@ -4,6 +4,7 @@ showdown.subParser('headers', function (text, options, globals) {
   text = globals.converter._dispatch('headers.before', text, options, globals);
 
   var prefixHeader = options.prefixHeaderId,
+      shouldAddLink = options.headerLinks && !options.noHeaderId,
       headerLevelStart = (isNaN(parseInt(options.headerLevelStart))) ? 1 : parseInt(options.headerLevelStart),
 
   // Set text-style headers:
@@ -17,11 +18,11 @@ showdown.subParser('headers', function (text, options, globals) {
       setextRegexH2 = (options.smoothLivePreview) ? /^(.+)[ \t]*\n-{2,}[ \t]*\n+/gm : /^(.+)[ \t]*\n-+[ \t]*\n+/gm;
 
   text = text.replace(setextRegexH1, function (wholeMatch, m1) {
-
     var spanGamut = showdown.subParser('spanGamut')(m1, options, globals),
         hID = (options.noHeaderId) ? '' : ' id="' + headerId(m1) + '"',
         hLevel = headerLevelStart,
-        hashBlock = '<h' + hLevel + hID + '>' + spanGamut + '</h' + hLevel + '>';
+        hContent = shouldAddLink ? '<a href="#' + hID + '">' + spanGamut + '</a>' : spanGamut,
+        hashBlock = '<h' + hLevel + hID + '>' + hContent + '</h' + hLevel + '>';
     return showdown.subParser('hashBlock')(hashBlock, options, globals);
   });
 
@@ -29,7 +30,8 @@ showdown.subParser('headers', function (text, options, globals) {
     var spanGamut = showdown.subParser('spanGamut')(m1, options, globals),
         hID = (options.noHeaderId) ? '' : ' id="' + headerId(m1) + '"',
         hLevel = headerLevelStart + 1,
-      hashBlock = '<h' + hLevel + hID + '>' + spanGamut + '</h' + hLevel + '>';
+        hContent = shouldAddLink ? '<a href="#' + hID + '">' + spanGamut + '</a>' : spanGamut,
+        hashBlock = '<h' + hLevel + hID + '>' + hContent + '</h' + hLevel + '>';
     return showdown.subParser('hashBlock')(hashBlock, options, globals);
   });
 
@@ -41,11 +43,11 @@ showdown.subParser('headers', function (text, options, globals) {
   //  ###### Header 6
   //
   text = text.replace(/^(#{1,6})[ \t]*(.+?)[ \t]*#*\n+/gm, function (wholeMatch, m1, m2) {
-    var span = showdown.subParser('spanGamut')(m2, options, globals),
+    var spanGamut = showdown.subParser('spanGamut')(m2, options, globals),
         hID = (options.noHeaderId) ? '' : ' id="' + headerId(m2) + '"',
         hLevel = headerLevelStart - 1 + m1.length,
-        header = '<h' + hLevel + hID + '>' + span + '</h' + hLevel + '>';
-
+        hContent = shouldAddLink ? '<a href="#' + hID + '">' + spanGamut + '</a>' : spanGamut,
+        header = '<h' + hLevel + hID + '>' + hContent + '</h' + hLevel + '>';
     return showdown.subParser('hashBlock')(header, options, globals);
   });
 
